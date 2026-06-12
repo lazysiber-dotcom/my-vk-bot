@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 
 // ========== ПОДКЛЮЧАЕМ ФОТОГРАФИИ ==========
-// ВНИМАНИЕ: у вас папка называется "image", а не "images"
 import nevskyImg from './image/nevsky.jpg';
 import gagarinImg from './image/gagarin.jpg';
 import lisaImg from './image/lisa.jpg';
@@ -13,7 +12,7 @@ import petr1Img from './image/petr1.jpg';
 import pirogovImg from './image/pirogov.jpg';
 import suvorovImg from './image/suvorov.jpg';
 
-// ========== ВАШИ 10 КАРТОЧЕК С ФОТО ==========
+// ========== ВАШИ 10 КАРТОЧЕК ==========
 const CARDS = [
   {
     id: 1,
@@ -100,21 +99,25 @@ const CARDS = [
 function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
-  const [isWinner, setIsWinner] = useState(false);
+  const [title, setTitle] = useState(null); // null, 'heir', 'hero'
 
   const handleComplete = () => {
-    if (isWinner) return;
-    
     let newScore = score + 10;
-    let newWinner = isWinner;
+    let newTitle = title;
     
-    if (newScore >= 100 && !isWinner) {
-      newWinner = true;
-      alert('🏆 ПОЗДРАВЛЯЮ! Ты — Победитель времени! 🏆');
+    // Проверяем достижение 300 очков (Герой нашего времени)
+    if (newScore >= 300 && title !== 'hero') {
+      newTitle = 'hero';
+      alert('⭐ ПОЗДРАВЛЯЮ! Ты — Герой нашего времени! ⭐');
+    }
+    // Проверяем достижение 100 очков (Наследник победителей)
+    else if (newScore >= 100 && title === null) {
+      newTitle = 'heir';
+      alert('🏆 ПОЗДРАВЛЯЮ! Ты — Наследник победителей! 🏆');
     }
     
     setScore(newScore);
-    setIsWinner(newWinner);
+    setTitle(newTitle);
     handleNext();
   };
 
@@ -128,8 +131,15 @@ function App() {
 
   const resetGame = () => {
     setScore(0);
-    setIsWinner(false);
+    setTitle(null);
     setCurrentIndex(0);
+  };
+
+  // Получаем название титула для отображения
+  const getTitleText = () => {
+    if (title === 'hero') return '⭐ Герой нашего времени ⭐';
+    if (title === 'heir') return '🏆 Наследник победителей 🏆';
+    return null;
   };
 
   if (currentIndex === -1) {
@@ -139,9 +149,14 @@ function App() {
           <h1 style={{ color: 'white' }}>🎉 Поздравляем! 🎉</h1>
           <h2 style={{ color: '#ddd' }}>Ты прошёл все 10 заданий</h2>
           <h1 style={{ color: '#4CAF50', fontSize: 48 }}>{score} очков</h1>
-          {isWinner && (
+          {title === 'hero' && (
             <div style={{ marginTop: 20, background: '#FFD700', padding: 10, borderRadius: 30 }}>
-              🏆 Победитель времени 🏆
+              ⭐ Герой нашего времени ⭐
+            </div>
+          )}
+          {title === 'heir' && title !== 'hero' && (
+            <div style={{ marginTop: 20, background: '#C0C0C0', padding: 10, borderRadius: 30 }}>
+              🏆 Наследник победителей 🏆
             </div>
           )}
           <button onClick={resetGame} style={{ marginTop: 30, padding: '12px 24px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, cursor: 'pointer' }}>
@@ -153,6 +168,7 @@ function App() {
   }
 
   const card = CARDS[currentIndex];
+  const titleText = getTitleText();
 
   return (
     <div style={{ minHeight: '100vh', background: '#12121a', padding: 20 }}>
@@ -164,9 +180,16 @@ function App() {
             <div style={{ color: '#aaa' }}>Твои очки</div>
             <div style={{ color: '#4CAF50', fontSize: 32, fontWeight: 'bold' }}>{score}</div>
           </div>
-          {isWinner && (
-            <div style={{ background: '#FFD700', padding: '6px 12px', borderRadius: 20, color: '#6B4C00' }}>
-              🏆 Победитель времени
+          {titleText && (
+            <div style={{ 
+              background: title === 'hero' ? '#FFD700' : '#C0C0C0', 
+              padding: '6px 12px', 
+              borderRadius: 20, 
+              color: title === 'hero' ? '#6B4C00' : '#333',
+              fontSize: 14,
+              fontWeight: 'bold'
+            }}>
+              {titleText}
             </div>
           )}
           <div style={{ color: '#aaa' }}>
@@ -187,7 +210,7 @@ function App() {
                 height: 120, 
                 borderRadius: '50%', 
                 objectFit: 'cover',
-                border: '3px solid #ffaa44',
+                border: title === 'hero' ? '3px solid #FFD700' : '3px solid #ffaa44',
               }}
             />
           </div>
