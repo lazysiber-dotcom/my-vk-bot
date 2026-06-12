@@ -1,0 +1,25 @@
+{
+  "files": {
+    "main.css": "/my-vk-bot/static/css/main.e6c13ad2.css",
+    "main.js": "/my-vk-bot/static/js/main.743c8ce8.js",
+    "static/js/453.3a192053.chunk.js": "/my-vk-bot/static/js/453.3a192053.chunk.js",
+    "static/media/gagarin.jpg": "/my-vk-bot/static/media/gagarin.7e92255ba18650e2f33b.jpg",
+    "static/media/volunteer.jpg": "/my-vk-bot/static/media/volunteer.4b8bf2bf4b20cb5273a6.jpg",
+    "static/media/nevsky.jpg": "/my-vk-bot/static/media/nevsky.6b90cdafa57318f29f7a.jpg",
+    "static/media/lisa.jpg": "/my-vk-bot/static/media/lisa.31dc886406abcef50050.jpg",
+    "static/media/korolev.jpg": "/my-vk-bot/static/media/korolev.8efbd66ff78d716c046c.jpg",
+    "static/media/pirogov.jpg": "/my-vk-bot/static/media/pirogov.005fdbe48496a0ef8170.jpg",
+    "static/media/suvorov.jpg": "/my-vk-bot/static/media/suvorov.939395ed68139363a0e1.jpg",
+    "static/media/lomonosov.jpg": "/my-vk-bot/static/media/lomonosov.61b6cc02c387ecfaa418.jpg",
+    "static/media/petr1.jpg": "/my-vk-bot/static/media/petr1.c413bf2bdfa1d62da197.jpg",
+    "static/media/zoya.jpg": "/my-vk-bot/static/media/zoya.1479d8d37b9e759d58bc.jpg",
+    "index.html": "/my-vk-bot/index.html",
+    "main.e6c13ad2.css.map": "/my-vk-bot/static/css/main.e6c13ad2.css.map",
+    "main.743c8ce8.js.map": "/my-vk-bot/static/js/main.743c8ce8.js.map",
+    "453.3a192053.chunk.js.map": "/my-vk-bot/static/js/453.3a192053.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.743c8ce8.js"
+  ]
+}
