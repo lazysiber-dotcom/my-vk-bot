@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(gh pr *)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'fix: исправлен запуск VK Mini App *)"
     ]
   }
 }
