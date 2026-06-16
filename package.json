@@ -1,8 +1,7 @@
 {
-  "homepage": "https://lazysiber-dotcom.github.io/my-vk-bot",
+  "homepage": ".",
   "name": "my-vk-bot",
   "version": "0.1.0",
-  "homepage": ".",
   "private": true,
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
