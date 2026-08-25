@@ -1,0 +1,4 @@
+/*
+  X-Frame-Options: ALLOWALL
+  Cache-Control: no-cache, no-store, must-revalidate
+  Access-Control-Allow-Origin: *
