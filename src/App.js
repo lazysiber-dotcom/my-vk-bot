@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import bridge from '@vkontakte/vk-bridge';
 
 // ========== ПОДКЛЮЧАЕМ ФОТОГРАФИИ ==========
 import nevskyImg from './image/nevsky.jpg';
 import gagarinImg from './image/gagarin.jpg';
 import lisaImg from './image/lisa.jpg';
 import korolevImg from './image/korolev.jpg';
-import zoyaImg from './image/lisa.jpg'; // временно, пока нет zoya.jpg
+import zoyaImg from './image/zoya.jpg';
 import lomonosovImg from './image/lomonosov.jpg';
 import volunteerImg from './image/volunteer.jpg';
 import petr1Img from './image/petr1.jpg';
@@ -26,26 +27,48 @@ const CARDS = [
   { id: 10, name: 'Александр Суворов', quality: 'Дисциплина', description: 'Великий полководец, не проигравший ни одного сражения', task: 'Объяви себе «цифровой устав» на день', image: suvorovImg },
 ];
 
+// ========== ХРАНЕНИЕ БАЛЛОВ (VK Storage — бесплатно) ==========
+const SCORE_KEY = 'score';
+
+const titleForScore = (s) => (s >= 100 ? 'hero' : s >= 50 ? 'heir' : null);
+
 function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [title, setTitle] = useState(null);
 
+  // При запуске — подтягиваем сохранённые баллы из VK Storage
+  useEffect(() => {
+    bridge.send('VKWebAppStorageGet', { key: SCORE_KEY })
+      .then((data) => {
+        const saved = parseInt(data.keys && data.keys[0] && data.keys[0].value, 10);
+        if (Number.isFinite(saved) && saved > 0) {
+          setScore(saved);
+          setTitle(titleForScore(saved));
+        }
+      })
+      .catch(() => {
+        // Вне VK Mini Apps — не критично, начинаем с нуля
+      });
+  }, []);
+
   const handleComplete = () => {
-    let newScore = score + 30;
+    let newScore = score + 10;
     let newTitle = title;
     
-    if (newScore >= 300 && title !== 'hero') {
+    if (newScore >= 100 && title !== 'hero') {
       newTitle = 'hero';
       alert('⭐ ПОЗДРАВЛЯЮ! Ты — Герой нашего времени! ⭐');
     }
-    else if (newScore >= 100 && title === null) {
+    else if (newScore >= 50 && title === null) {
       newTitle = 'heir';
       alert('🏆 ПОЗДРАВЛЯЮ! Ты — Наследник победителей! 🏆');
     }
     
     setScore(newScore);
     setTitle(newTitle);
+    // Сохраняем прогресс в VK Storage
+    bridge.send('VKWebAppStorageSet', { key: SCORE_KEY, value: String(newScore) }).catch(() => {});
     handleNext();
   };
 
@@ -61,6 +84,8 @@ function App() {
     setScore(0);
     setTitle(null);
     setCurrentIndex(0);
+    // Обнуляем сохранённый прогресс
+    bridge.send('VKWebAppStorageSet', { key: SCORE_KEY, value: '0' }).catch(() => {});
   };
 
   const getTitleText = () => {
