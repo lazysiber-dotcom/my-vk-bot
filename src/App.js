@@ -27,29 +27,41 @@ const CARDS = [
   { id: 10, name: 'Александр Суворов', quality: 'Дисциплина', description: 'Великий полководец, не проигравший ни одного сражения', task: 'Объяви себе «цифровой устав» на день', image: suvorovImg },
 ];
 
-// ========== ХРАНЕНИЕ БАЛЛОВ (VK Storage — бесплатно) ==========
+// ========== ХРАНЕНИЕ БАЛЛОВ (VK Storage + резерв localStorage) ==========
 const SCORE_KEY = 'score';
 
 const titleForScore = (s) => (s >= 100 ? 'hero' : s >= 50 ? 'heir' : null);
+
+// Вне VK Mini Apps (открытие по прямой ссылке) VK Storage недоступен — используем localStorage
+const lsGet = () => { try { return parseInt(localStorage.getItem(SCORE_KEY), 10) || 0; } catch (e) { return 0; } };
+const lsSet = (v) => { try { localStorage.setItem(SCORE_KEY, String(v)); } catch (e) {} };
+
+const loadSavedScore = () =>
+  bridge.send('VKWebAppStorageGet', { key: SCORE_KEY })
+    .then((data) => {
+      const saved = parseInt(data.keys && data.keys[0] && data.keys[0].value, 10);
+      return (Number.isFinite(saved) && saved > 0) ? saved : lsGet();
+    })
+    .catch(() => lsGet());
+
+const saveScore = (value) => {
+  lsSet(value);
+  bridge.send('VKWebAppStorageSet', { key: SCORE_KEY, value: String(value) }).catch(() => {});
+};
 
 function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [title, setTitle] = useState(null);
 
-  // При запуске — подтягиваем сохранённые баллы из VK Storage
+  // При запуске — подтягиваем сохранённые баллы
   useEffect(() => {
-    bridge.send('VKWebAppStorageGet', { key: SCORE_KEY })
-      .then((data) => {
-        const saved = parseInt(data.keys && data.keys[0] && data.keys[0].value, 10);
-        if (Number.isFinite(saved) && saved > 0) {
-          setScore(saved);
-          setTitle(titleForScore(saved));
-        }
-      })
-      .catch(() => {
-        // Вне VK Mini Apps — не критично, начинаем с нуля
-      });
+    loadSavedScore().then((saved) => {
+      if (saved > 0) {
+        setScore(saved);
+        setTitle(titleForScore(saved));
+      }
+    });
   }, []);
 
   const handleComplete = () => {
@@ -67,8 +79,8 @@ function App() {
     
     setScore(newScore);
     setTitle(newTitle);
-    // Сохраняем прогресс в VK Storage
-    bridge.send('VKWebAppStorageSet', { key: SCORE_KEY, value: String(newScore) }).catch(() => {});
+    // Сохраняем прогресс
+    saveScore(newScore);
     handleNext();
   };
 
@@ -85,7 +97,7 @@ function App() {
     setTitle(null);
     setCurrentIndex(0);
     // Обнуляем сохранённый прогресс
-    bridge.send('VKWebAppStorageSet', { key: SCORE_KEY, value: '0' }).catch(() => {});
+    saveScore(0);
   };
 
   const getTitleText = () => {
