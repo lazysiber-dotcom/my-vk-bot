@@ -40,23 +40,25 @@ const loadSavedScore = () =>
   bridge.send('VKWebAppStorageGet', { key: SCORE_KEY })
     .then((data) => {
       const saved = parseInt(data.keys && data.keys[0] && data.keys[0].value, 10);
-      return (Number.isFinite(saved) && saved > 0) ? saved : lsGet();
+      return { score: (Number.isFinite(saved) && saved > 0) ? saved : lsGet(), mode: 'VK Storage' };
     })
-    .catch(() => lsGet());
+    .catch(() => ({ score: lsGet(), mode: 'этот браузер' }));
 
-const saveScore = (value) => {
-  lsSet(value);
-  bridge.send('VKWebAppStorageSet', { key: SCORE_KEY, value: String(value) }).catch(() => {});
-};
+const saveScore = (value) =>
+  bridge.send('VKWebAppStorageSet', { key: SCORE_KEY, value: String(value) })
+    .then(() => 'VK Storage')
+    .catch(() => 'этот браузер');
 
 function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [title, setTitle] = useState(null);
+  const [storageMode, setStorageMode] = useState('');
 
   // При запуске — подтягиваем сохранённые баллы
   useEffect(() => {
-    loadSavedScore().then((saved) => {
+    loadSavedScore().then(({ score: saved, mode }) => {
+      setStorageMode(mode);
       if (saved > 0) {
         setScore(saved);
         setTitle(titleForScore(saved));
@@ -80,7 +82,7 @@ function App() {
     setScore(newScore);
     setTitle(newTitle);
     // Сохраняем прогресс
-    saveScore(newScore);
+    saveScore(newScore).then(setStorageMode);
     handleNext();
   };
 
@@ -97,7 +99,7 @@ function App() {
     setTitle(null);
     setCurrentIndex(0);
     // Обнуляем сохранённый прогресс
-    saveScore(0);
+    saveScore(0).then(setStorageMode);
   };
 
   const getTitleText = () => {
@@ -116,6 +118,7 @@ function App() {
           {title === 'hero' && <div style={{ marginTop: 20, background: '#FFD700', padding: 10, borderRadius: 30 }}>⭐ Герой нашего времени ⭐</div>}
           {title === 'heir' && title !== 'hero' && <div style={{ marginTop: 20, background: '#C0C0C0', padding: 10, borderRadius: 30 }}>🏆 Наследник победителей 🏆</div>}
           <button onClick={resetGame} style={{ marginTop: 30, padding: '12px 24px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, cursor: 'pointer' }}>Пройти заново</button>
+          {storageMode && <div style={{ marginTop: 16, color: '#888', fontSize: 12 }}>💾 Прогресс сохраняется: {storageMode}</div>}
         </div>
       </div>
     );
@@ -146,6 +149,7 @@ function App() {
             <button onClick={handleComplete} style={{ flex: 1, padding: '14px', background: '#2e7d32', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 'bold', cursor: 'pointer' }}>✅ Выполнено</button>
             <button onClick={handleNext} style={{ flex: 1, padding: '14px', background: '#3a3a4a', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 'bold', cursor: 'pointer' }}>⏩ Следующий</button>
           </div>
+          {storageMode && <div style={{ marginTop: 16, color: '#888', fontSize: 12, textAlign: 'center' }}>💾 Прогресс сохраняется: {storageMode}</div>}
         </div>
       </div>
     </div>
