@@ -33,21 +33,32 @@ const SCORE_KEY = 'score';
 const titleForScore = (s) => (s >= 100 ? 'hero' : s >= 50 ? 'heir' : null);
 
 // Вне VK Mini Apps (открытие по прямой ссылке) VK Storage недоступен — используем localStorage
-const lsGet = () => { try { return parseInt(localStorage.getItem(SCORE_KEY), 10) || 0; } catch (e) { return 0; } };
-const lsSet = (v) => { try { localStorage.setItem(SCORE_KEY, String(v)); } catch (e) {} };
+const lsGet = () => { try { return parseInt(localStorage.getItem(SCORE_KEY), 10) || 0; } catch (e) { console.warn('localStorage read failed:', e && e.message); return 0; } };
+const lsSet = (v) => { try { localStorage.setItem(SCORE_KEY, String(v)); return true; } catch (e) { console.warn('localStorage write failed:', e && e.message); return false; } };
+
+// VK может не ответить на запрос — не ждём дольше 3 секунд
+const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
 
 const loadSavedScore = () =>
-  bridge.send('VKWebAppStorageGet', { key: SCORE_KEY })
+  withTimeout(bridge.send('VKWebAppStorageGet', { key: SCORE_KEY }), 3000)
     .then((data) => {
       const saved = parseInt(data.keys && data.keys[0] && data.keys[0].value, 10);
       return { score: (Number.isFinite(saved) && saved > 0) ? saved : lsGet(), mode: 'VK Storage' };
     })
-    .catch(() => ({ score: lsGet(), mode: 'этот браузер' }));
+    .catch((err) => {
+      console.warn('VKWebAppStorageGet failed:', err && (err.reason || err.message || err));
+      return { score: lsGet(), mode: 'этот браузер' };
+    });
 
-const saveScore = (value) =>
-  bridge.send('VKWebAppStorageSet', { key: SCORE_KEY, value: String(value) })
+const saveScore = (value) => {
+  const lsOk = lsSet(value);
+  return bridge.send('VKWebAppStorageSet', { key: SCORE_KEY, value: String(value) })
     .then(() => 'VK Storage')
-    .catch(() => 'этот браузер');
+    .catch((err) => {
+      console.warn('VKWebAppStorageSet failed:', err && (err.reason || err.message || err));
+      return lsOk ? 'этот браузер' : 'сохранение недоступно ⚠️';
+    });
+};
 
 function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
